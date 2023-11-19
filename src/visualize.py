@@ -4,6 +4,7 @@ from math import sin, cos, atan2, radians, degrees
 from random import randint
 import pygame as pg
 import sys
+from boids import Boid
 
 
 
@@ -17,28 +18,13 @@ FPS = 50  # min 48, max 90
 
 
 
-class Boid(pg.sprite.Sprite):
+class ArtificialBoid(Boid):
     def __init__(self, id, drawSurf, cHSV=None, timeseries_data=None, maxTime=None):
-        super().__init__()
+        super().__init__(id, drawSurf, cHSV)
         
-        self.id = id
         self.timeseries_data = timeseries_data
         self.timeseries_data_index = 0
         self.maxTime = maxTime
-        self.affectedBy = []
-
-        self.drawSurf = drawSurf
-        self.image = pg.Surface((15, 15))
-        self.image.set_colorkey(0)
-        randColor = pg.Color(0)  # preps color so we can use hsva
-        # randint(10,60) goldfish
-        randColor.hsva = (randint(0, 360), 85, 85) if cHSV is None else cHSV
-        pg.draw.polygon(self.image, randColor,
-                        ((7, 0), (13, 14), (7, 11), (1, 14), (7, 0)))
-        self.pSpace = (self.image.get_width() + self.image.get_height()) / 2
-        self.orig_image = pg.transform.rotate(self.image.copy(), -90)
-        self.direction = pg.Vector2(1, 0)  # sets up forward direction
-        dS_w, dS_h = self.drawSurf.get_size()
         
         ts_x, ts_y, ts_angle = self.__get_timeseries_params()
         self.rect = self.image.get_rect(
@@ -48,11 +34,12 @@ class Boid(pg.sprite.Sprite):
         self.pos = pg.Vector2(ts_x, ts_y)
 
     def __get_timeseries_params(self):
-        if self.timeseries_data_index >= len(self.timeseries_data):
-            self.timeseries_data_index = 0
-        
         if self.maxTime is not None and self.timeseries_data_index >= self.maxTime:
             self.timeseries_data_index = 0
+        
+        if self.timeseries_data_index >= len(self.timeseries_data):
+            self.timeseries_data_index += 1
+            return None, None, None
         
         data = self.timeseries_data[self.timeseries_data_index]
         self.timeseries_data_index += 1
@@ -61,6 +48,11 @@ class Boid(pg.sprite.Sprite):
 
     def update(self, allBoids, dt, ejWrap=False):
         ts_x, ts_y, ts_angle = self.__get_timeseries_params()
+
+        if ts_x is None or ts_y is None or ts_angle is None:
+            # if do not have any more data, use default update
+            return
+            # return super().update(allBoids, dt, ejWrap)
 
         self.angle = ts_angle
         self.pos = pg.Vector2(ts_x, ts_y)
@@ -90,19 +82,9 @@ class Boid(pg.sprite.Sprite):
                 self.pos.x = curW
             elif self.rect.left > curW:
                 self.pos.x = 0
+        
         # actually update position of boid
         self.rect.center = self.pos
-
-    def getParams(self):
-        return [
-            self.pos.x,
-            self.pos.y,
-            self.angle,
-        ]
-    
-    def getAffectedBy(self):
-        return self.affectedBy
-
 
 def prepareData(data, predictionsAmount = 6):
     if len(data.shape) == 3:
@@ -112,7 +94,8 @@ def prepareData(data, predictionsAmount = 6):
         ret = []
 
         for i in range(predictionsAmount):
-            ret.append( data[:,i] )
+            # ret.append( data[:,i] )
+            ret.append( data[i] )
         
         return ret
     
@@ -143,6 +126,10 @@ def main():
     timeseries_data = prepareData(timeseries_data, predictionsAmount)
     prediction_data = prepareData(prediction_data, predictionsAmount)
 
+
+    # print(prediction_data[0].shape)
+    # return
+
     timeseries_data = timeseries_data + prediction_data
 
     # INIT PYGAME
@@ -162,23 +149,27 @@ def main():
         pg.mouse.set_visible(False)
     else:
         screen = pg.display.set_mode((WIDTH, HEIGHT), pg.RESIZABLE)
-    nBoids = pg.sprite.Group()
+    
+    nBoids = []
+    for batchNo in range(len(timeseries_data)):
+        nBoids.append(pg.sprite.Group())
 
-    COLORS = [
-        (250, 85, 85), # timeseries
-        ( 50, 85, 85), # predictions
-        ( 40, 85, 85),
-        ( 30, 85, 85),
-        ( 20, 85, 85),
-        ( 10, 85, 85),
-        (  0, 85, 85),
-    ]
+    COLORS = [(250, 85, 85)] # timeseries
+    
+    for i in range(1, len(timeseries_data)):
+        COLORS.append((np.linspace(0, 50, len(timeseries_data)-1)[i-1], 85, 85)) # predictions
+    
     for batchNo,batch_timeseries_data in enumerate(timeseries_data):
         color = COLORS[batchNo]
         for n in range(BOIDZ):  # spawns desired # of boidz
-            nBoids.add(Boid(n, screen, color, batch_timeseries_data[:,n,:], maxTime))
+            nBoids[batchNo].add(ArtificialBoid(n, screen, color, batch_timeseries_data[:,n,:], maxTime))
     
-    allBoids = nBoids.sprites()
+    allBoids = []
+
+    for batchNo in range(len(timeseries_data)):
+        allBoids.append(nBoids[batchNo].sprites())
+    
+
     clock = pg.time.Clock()
 
     running = True
@@ -193,8 +184,10 @@ def main():
         dt = clock.tick(FPS) / 1000
         screen.fill(BGCOLOR)
 
-        nBoids.update(allBoids, dt, WRAP)
-        nBoids.draw(screen)
+        for batchNo in range(len(timeseries_data)):
+            nBoids[batchNo].update(allBoids[batchNo], dt, WRAP)
+            nBoids[batchNo].draw(screen)
+        
         pg.display.update()
 
 if __name__ == '__main__':
