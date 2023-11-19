@@ -5,12 +5,12 @@
 from math import sin, cos, atan2, radians, degrees
 from random import randint
 import pygame as pg
-import struct
+import sys
 
 from data import DataWriter
 
 FLLSCRN = False
-BOIDZ = 2
+BOIDZ = 50
 WRAP = False
 BGCOLOR = (0, 0, 0)
 WIDTH = 1200
@@ -18,8 +18,12 @@ HEIGHT = 800
 FPS = 50  # min 48, max 90
 
 class Boid(pg.sprite.Sprite):
-    def __init__(self, drawSurf, cHSV=None):
+    def __init__(self, id, drawSurf, cHSV=None):
         super().__init__()
+        
+        self.id = id
+        self.affectedBy = []
+
         self.drawSurf = drawSurf
         self.image = pg.Surface((15, 15))
         self.image.set_colorkey(0)
@@ -48,6 +52,8 @@ class Boid(pg.sprite.Sprite):
             if pg.Vector2(iBoid.rect.center).distance_to(selfCenter) < self.pSpace*12 and iBoid != self],
             key=lambda i: pg.Vector2(i.rect.center).distance_to(selfCenter))  # 200
         del neiboids[7:]  # keep 7 closest, dump the rest
+
+        self.affectedBy = neiboids.copy()
         
         if (ncount := len(neiboids)) > 1:  # when boid has neighborS (walrus sets ncount)
             nearestBoid = pg.Vector2(neiboids[0].rect.center)
@@ -130,10 +136,19 @@ class Boid(pg.sprite.Sprite):
             self.pos.y,
             self.angle,
         ]
+    
+    def getAffectedBy(self):
+        return self.affectedBy
 
 
 def main():
-    dataWriter = DataWriter("data.txt")
+    if len(sys.argv) <= 1:
+        inputFilePath = "data.dat"
+    else:
+        inputFilePath = sys.argv[1]
+    print(inputFilePath)
+    
+    dataWriter = DataWriter(inputFilePath)
     dataWriter.open()
     dataWriter.numberOfBoids(BOIDZ)
 
@@ -153,7 +168,7 @@ def main():
         screen = pg.display.set_mode((WIDTH, HEIGHT), pg.RESIZABLE)
     nBoids = pg.sprite.Group()
     for n in range(BOIDZ):  # spawns desired # of boidz
-        nBoids.add(Boid(screen, (250, 85, 85)))
+        nBoids.add(Boid(n, screen, (250, 85, 85)))
     allBoids = nBoids.sprites()
     clock = pg.time.Clock()
 
