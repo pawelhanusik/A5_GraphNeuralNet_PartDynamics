@@ -1,2 +1,4 @@
 src/__pycache__/
-src/data.txt
+src/gnn-input*
+src/output
+venv/
