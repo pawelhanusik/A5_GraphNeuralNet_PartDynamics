@@ -173,6 +173,7 @@ def main():
     clock = pg.time.Clock()
 
     running = True
+    frame_count = 0
 
     # main loop
     while running:
@@ -189,6 +190,10 @@ def main():
             nBoids[batchNo].draw(screen)
         
         pg.display.update()
+
+        # frame_count += 1
+        # filename = "ss/screen_%04d.png" % ( frame_count )
+        # pg.image.save( screen, filename )
 
 if __name__ == '__main__':
     main()
