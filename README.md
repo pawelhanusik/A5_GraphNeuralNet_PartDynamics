@@ -119,13 +119,15 @@ DBSCAN (Density-Based Spatial Clustering of Applications with Noise) to popularn
 
 <img src="https://github.com/pawelhanusik/A5_GraphNeuralNet_PartDynamics/blob/master/media/simulation_DBSCAN.gif" width="70%" height="auto">
 
-Zwiększanie liczby obszarów może poprawić efektywność symulacji Boidów, przybliżając wydajność do liniowej względem ilości Boidów. Jednak problemem, który często jest pomijany, jest to, że w większych przestrzeniach efektywność układania płytek nie jest tak istotna, ponieważ liczba tak definiownaych obszarów obszarów zwiększa się proporcjonalnie do kwadratu rozmiaru środowiska, czyli całkowitego obszaru, po którym poruszają się agenci. Chociaż obliczanie na bieżąco prędkości dla każdego boida ma złożoność liniową (O(n)), gdzie n to liczba boidów w pobliżu, przez wzgląd na opisane okoliczności algorytm ten sprawdza siuę w środowiskach z mniejszą liczbą występujących boidów. Niestety, zwiększająca się eksponecjalnie złożoność zwiększania liczby obszarów przy stałym rozmiarze przestrzeni całkowitej negatywnie wpływa na poprawę wydajności dla omaianego środowiska, w którym to całkowity obszar jest stały i nie ulega zmiaine, natomiast liczba agentów się zwiększa.
-
+Warto jednak pamiętać, że DBSCAN nie zawsze jest uniwersalną metodą poprawy wydajności algorytmu. W sytuacji dużej gęstości boidów DBSCAN ma złożoność obliczeniową porównywalną z implementacją bazową, bliską kwadratowej. DBSCAN bardzo dobrze sprawdza się dla dużego całkowitego obszaru, natomiast w naszej sytuacji, całkowity obszar po którym poruszają się boidy jest stały i nie ulega zmiaine, natomiast liczba agentów się zwiększa. Tym samym algorytm ten nie sprawdzi się w omawiamym przez nas przypadku.
 
 ### Tiling
 
+Tiling to metoda polegająca generowanie obszarów dla każdego boida. Podczas obliczeń dla danego boida brane są więc pod uwagę tylko boidy znajdujące się w jego otoczeniu. Poniżej przedstawiono w jaki sposób zachowwuje się symulacja dla omawianej metody.
+
 <img src="https://github.com/pawelhanusik/A5_GraphNeuralNet_PartDynamics/blob/master/media/simulation_Tiling.gif.gif" width="70%" height="auto">
 
+Chociaż obliczanie na bieżąco prędkości dla każdego boida ma złożoność liniową (O(n)), gdzie n to liczba boidów w pobliżu, przez wzgląd na opisane okoliczności algorytm ten sprawdza się w środowiskach z mniejszą liczbą występujących boidów. Niestety, zwiększająca się eksponecjalnie złożoność zwiększania liczby obszarów przy stałym rozmiarze przestrzeni całkowitej negatywnie wpływa na poprawę wydajności dla omaianego środowiska. Zwiększanie liczby obszarów może poprawić efektywność symulacji Boidów, przybliżając wydajność do liniowej względem ilości Boidów. Jednak problemem, który często jest pomijany, jest to, że w większych przestrzeniach efektywność układania płytek nie jest tak istotna, ponieważ liczba tak definiownaych obszarów obszarów zwiększa się proporcjonalnie do kwadratu rozmiaru środowiska, czyli całkowitego obszaru, po którym poruszają się agenci. 
 
 ### Porównanie wydajności algorytmów
 
