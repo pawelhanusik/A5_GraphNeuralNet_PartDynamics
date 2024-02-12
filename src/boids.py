@@ -50,12 +50,12 @@ class Boid(pg.sprite.Sprite):
         neiboids = sorted([  # gets list of nearby boids, sorted by distance
             iBoid for iBoid in allBoids
             if pg.Vector2(iBoid.rect.center).distance_to(selfCenter) < self.pSpace*12 and iBoid != self],
-            key=lambda i: pg.Vector2(i.rect.center).distance_to(selfCenter))  # 200
+            key=lambda i: pg.Vector2(i.rect.center).distance_to(selfCenter))
         del neiboids[7:]  # keep 7 closest, dump the rest
 
         self.affectedBy = neiboids.copy()
         
-        if (ncount := len(neiboids)) > 1:  # when boid has neighborS (walrus sets ncount)
+        if (ncount := len(neiboids)) > 1:  # when boid has neighbors
             nearestBoid = pg.Vector2(neiboids[0].rect.center)
 
             for nBoid in neiboids:  # adds up neighbor vectors & angles for averaging
@@ -71,12 +71,12 @@ class Boid(pg.sprite.Sprite):
             if selfCenter.distance_to(nearestBoid) < self.pSpace:
                 targetV = nearestBoid
 
-            tDiff = targetV - selfCenter  # get angle differences for steering
+            tDiff = targetV - selfCenter # get angle differences for steering
             tDistance, tAngle = pg.math.Vector2.as_polar(tDiff)
 
             # if boid is close enough to neighbors, match their average angle
             if tDistance < self.pSpace*6:
-                tAngle = tAvejAng  # and ncount > 2
+                tAngle = tAvejAng
 
             # computes the difference to reach target angle, for smooth steering
             angleDiff = (tAngle - self.angle) + 180
