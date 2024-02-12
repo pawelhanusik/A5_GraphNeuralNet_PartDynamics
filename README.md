@@ -13,7 +13,7 @@ Projekt z przedmiotu Informatyka Systemów Złożonych na kierunku Informatyka A
 3. [Zebrane dane](#3-zebrane-dane)
 4. [Aproksymacja dynamiki agentów przy pomocy GNN'ów](#4-aproksymacja-dynamiki-agentów-przy-pomocy-gnnów)
 5. [Uruchomienie symulacji dla większej liczby boidów](#5-uruchomienie-symulacji-dla-większej-liczby-boidów)
-6. [Próba aproksymacji dynamiki agentów dla większej liczby boidów przy użyciu GNN'ów](#4-proba-aproksymacji-dynamiki-agentów-dla-większej-liczby-boidów-przy-użyciu-gnnów)
+6. [Próba aproksymacji dynamiki agentów dla większej liczby boidów przy użyciu GNN'ów](#6-próba-aproksymacji-dynamiki-agentów-dla-większej-liczby-boidów-przy-użyciu-gnnów)
 
 
 
@@ -102,11 +102,11 @@ W odpowiedzi na potrzebę zwiększenia wydajności symulacji, opracowano jej upr
 1. Boidy poruszają się zgodnie ze średnim kierunkiem otaczających je Boidów.
 1. Boidy poruszają się w stronę środka otaczających je Boidów.
 
-Poniżej przedstawiona została utworzona została symualacja dla 150 boidów.
+Poniżej przedstawiona została utworzona została symualacja dla 150 boidów (niejednolite tło wynika z błędów konwersji).
 
 <img src="https://github.com/pawelhanusik/A5_GraphNeuralNet_PartDynamics/blob/master/media/simulation.gif" width="70%" height="auto">
 
-Dla tak zdefiniowanych warunków złożoność obliczeniowa pojedynczego agenta jest niewielka. Nie mniej w momencie gdy rozważane jest ich całe stado, pojedynczy boid  musi wziąć pod uwagę wszystkie inne boidy, aby wyliczyć aktualną wartość prędkości. Widać to szczególnie na przykładzie poniższego wykresu. W celu zbadnania wydajności posłużono się miarą spowolnienia (ang. slowdown), która to jest wyrażana jako stosunek czasu trwania symulacji dla zdefiniowanego stanu (w naszym przypadku dla 200 osobników) do czasu symulacji dla stanu akrualnego trwającej w czasie rzeczywistym. Zatem poniżej przestawiono wykres zależności tak wyliczonego spowolnienia w zależności od liczby boidów biorących udział w symulacji. 
+Dla tak zdefiniowanych warunków złożoność obliczeniowa pojedynczego agenta jest niewielka. Nie mniej w momencie gdy rozważane jest ich całe stado, pojedynczy boid musi wziąć pod uwagę wszystkie inne boidy, aby wyliczyć aktualną wartość prędkości. Widać to szczególnie na przykładzie poniższego wykresu. W celu zbadania wydajności posłużono się miarą spowolnienia (ang. slowdown), która to jest wyrażana jako stosunek czasu trwania symulacji dla zdefiniowanego stanu (w naszym przypadku dla 200 osobników) do czasu symulacji dla stanu akrualnego trwającej w czasie rzeczywistym. Zatem poniżej przestawiono wykres zależności tak wyliczonego spowolnienia w zależności od liczby boidów biorących udział w symulacji. 
 
 ![slowdowns](media/slowdowns.png)
 
@@ -119,21 +119,27 @@ DBSCAN (Density-Based Spatial Clustering of Applications with Noise) to popularn
 
 <img src="https://github.com/pawelhanusik/A5_GraphNeuralNet_PartDynamics/blob/master/media/simulation_DBSCAN.gif" width="70%" height="auto">
 
-Warto jednak pamiętać, że DBSCAN nie zawsze jest uniwersalną metodą poprawy wydajności algorytmu. W sytuacji dużej gęstości boidów DBSCAN ma złożoność obliczeniową porównywalną z implementacją bazową, bliską kwadratowej. DBSCAN bardzo dobrze sprawdza się dla dużego całkowitego obszaru, natomiast w naszej sytuacji, całkowity obszar po którym poruszają się boidy jest stały i nie ulega zmiaine, natomiast liczba agentów się zwiększa. Tym samym algorytm ten nie sprawdzi się w omawiamym przez nas przypadku.
+Warto jednak pamiętać, że DBSCAN nie zawsze jest uniwersalną metodą poprawy wydajności algorytmu. W sytuacji dużej gęstości boidów DBSCAN ma złożoność obliczeniową porównywalną z implementacją bazową, bliską kwadratowej. Przez wzgląd na opisane okoliczności DBSCAN bardzo dobrze sprawdza się dla dużego całkowitego obszaru bądź w środowiskach z mniejszą liczbą występujących boidów. W naszej sytuacji, całkowity obszar po którym poruszają się boidy jest stały i nie ulega zmiaine, natomiast liczba agentów się zwiększa. Tym samym algorytm ten nie sprawdzi się w omawiamym przez nas przypadku.
+
 
 ### Tiling
 
-Tiling to metoda polegająca generowanie obszarów dla każdego boida. Podczas obliczeń dla danego boida brane są więc pod uwagę tylko boidy znajdujące się w jego otoczeniu. Poniżej przedstawiono w jaki sposób zachowwuje się symulacja dla omawianej metody.
+Tiling to metoda polegająca na generowaniu otoczenia dla każdego boida. Podczas obliczeń dla danego boida brane są więc pod uwagę tylko boidy znajdujące się w jego otoczeniu. Poniżej przedstawiono w jaki sposób zachowwuje się symulacja dla omawianej metody.
 
-<img src="https://github.com/pawelhanusik/A5_GraphNeuralNet_PartDynamics/blob/master/media/simulation_Tiling.gif.gif" width="70%" height="auto">
+<img src="https://github.com/pawelhanusik/A5_GraphNeuralNet_PartDynamics/blob/master/media/simulation_Tiling.gif" width="70%" height="auto">
 
-Chociaż obliczanie na bieżąco prędkości dla każdego boida ma złożoność liniową (O(n)), gdzie n to liczba boidów w pobliżu, przez wzgląd na opisane okoliczności algorytm ten sprawdza się w środowiskach z mniejszą liczbą występujących boidów. Niestety, zwiększająca się eksponecjalnie złożoność zwiększania liczby obszarów przy stałym rozmiarze przestrzeni całkowitej negatywnie wpływa na poprawę wydajności dla omaianego środowiska. Zwiększanie liczby obszarów może poprawić efektywność symulacji Boidów, przybliżając wydajność do liniowej względem ilości Boidów. Jednak problemem, który często jest pomijany, jest to, że w większych przestrzeniach efektywność układania płytek nie jest tak istotna, ponieważ liczba tak definiownaych obszarów obszarów zwiększa się proporcjonalnie do kwadratu rozmiaru środowiska, czyli całkowitego obszaru, po którym poruszają się agenci. 
+Chociaż obliczanie na bieżąco prędkości dla każdego boida ma złożoność liniową (O(n)), gdzie n to liczba boidów w pobliżu,  niestety, zwiększająca się eksponecjalnie złożoność zwiększania liczby obszarów przy stałym rozmiarze przestrzeni całkowitej negatywnie wpływa na poprawę wydajności dla omaianego środowiska. Zwiększanie liczby otoczeń może poprawić efektywność symulacji Boidów, przybliżając wydajność do liniowej względem ilości Boidów. Jednak problemem, który często jest pomijany, jest to, że w większych przestrzeniach efektywność generowania otoczeń nie jest tak istotna, ponieważ liczba tak zdefiniownaych obszarów zwiększa się proporcjonalnie do kwadratu rozmiaru środowiska, czyli całkowitego obszaru, po którym poruszają się agenci. 
+
 
 ### Porównanie wydajności algorytmów
 
+Na poniższym wykresie przedstawione zostało porównianie wydajności wszytskich omówionych algorytmów.
+
 ![slowdowns_all](media/slowdowns_all.png)
 
-Poniżej przedstawiono tak oto powstały algortytm:
+Z wykresu można zaobserwować, że obie omawiane metody osigają wydajność zbliżoną do algorytmu bazowego. W celu poprawy wydajności zdecydowano się więc na połączenie obu tych algorytmów, jako że algorytm DBSCAN działa lepiej od Tilingu dla dużej przestrzeni stanów, natomiast tiling pozwala jeszcze bardziej zmniejszyć liczbę wymaganych obliczeń. Tak powstały algorytm poradził sobie nieporównywalnie lepiej od pozostałych trzech algorytmwów, cechując się przy tym zauważalnie lepszą wydajnością. Dla poprawienia widoczności różnicy zastosowano skalę logarytmiczną na osi y reprezentującą wartość spowolnienia. 
+
+Poniżej przedstawiono działanie algorytmu powstałego w wyniku połączenia metody Tilingu i algorytmu DBSCAN:
 
 <img src="https://github.com/pawelhanusik/A5_GraphNeuralNet_PartDynamics/blob/master/media/simulation_DBSCAN_Tiling.gif" width="70%" height="auto">
 
@@ -141,4 +147,4 @@ Poniżej przedstawiono tak oto powstały algortytm:
 
 ## 6. Próba aproksymacji dynamiki agentów dla większej liczby boidów przy użyciu GNN'ów
 
-Dla wydajniejszego nowo powstałego wariantu symulacji ponowiono próbę apoksymacji dynamiki agentów dla zwiększonej liczby boidów przy użyciu wcześniej użytej sieci SwarmNet opartej o GNN. Wybór ten został podyktowany faktem, że alternatywna sieć GNbS (Graph Network-based Simulator), używana głównie do modelowania zachowań płynów i cieczy, nie znalazła zastosowania w naszym badaniu. Mimo zredukowanej ilości potrzebnych obliczeń, przy próbie przeprowadzenia treningu dla 500 boidów, sieć zgłosiła potrzebę alokacji około 400 Gb pamięci VRAM. Niestety, realizacja tego zadania w warunkach domowych okazała się niemożliwa.
+Dla wydajniejszego nowo powstałego wariantu symulacji ponowiono próbę apoksymacji dynamiki agentów dla zwiększonej liczby boidów przy użyciu wcześniej użytej sieci SwarmNet opartej o GNN. Wybór ten został podyktowany faktem, że alternatywna sieć GNbS (Graph Network-based Simulator), używana jest głównie do modelowania zachowań płynów i cieczy, a nam nie udało się znaleźć jej zastosowania w innych dziedzianch. Mimo zredukowanej ilości potrzebnych obliczeń, przy próbie przeprowadzenia treningu dla 500 boidów, sieć poinformowała o potrzebie alokacji około 400 Gb pamięci VRAM. Niestety, realizacja tego zadania tym samym okazała się niemożliwa w domowych warunkach, przez wzgląd na ograniczoną ilość pamięci.
