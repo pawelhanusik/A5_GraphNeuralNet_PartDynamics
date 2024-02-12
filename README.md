@@ -133,7 +133,7 @@ Chociaż obliczanie na bieżąco prędkości dla każdego boida ma złożoność
 
 ### Porównanie wydajności algorytmów
 
-Na poniższym wykresie przedstawione zostało porównianie wydajności wszystkich omówionych algorytmów.
+Na poniższym wykresie przedstawione zostało porównianie wydajności wszystkich omówionych algorytmów w zależności od liczby boidów.
 
 ![slowdowns_all](media/slowdowns_all.png)
 
